@@ -11,7 +11,7 @@ import UIKit
 class RestaurantTableViewController: UITableViewController {
     var restaurantNames = ["黄焖鸡米饭", "温州面馆", "观秦轩", "老街小食", "老薛面馆", "小杨生煎", "水饺","黄焖鸡米饭", "温州面馆", "观秦轩", "老街小食", "老薛面馆", "小杨生煎", "水饺"]
     var restaurantImage = ["barrafina.jpg","bourkestreetbakery.jpg","cafedeadend.jpg","cafeloisl.jpg","cafelore.jpg","confessional.jpg","donostia.jpg","barrafina.jpg","bourkestreetbakery.jpg","cafedeadend.jpg","cafeloisl.jpg","cafelore.jpg","confessional.jpg","donostia.jpg"]
-    var restaurantLocations = ["上海","上海","上海","上海","上海","上海","上海","上海","上海","上海","上海","上海","上海","上海"]
+    var restaurantLocations = ["中国上海市浙江中路462号","中国 上海市 广西北路408号","中国 上海市 浙江中路473号","中国 上海市 天津路502号","中国上海市广西北路485号","中国 上海市 浙江中路486号","中国 上海市 广西北路473号","中国 上海市 浙江中路462号","中国 上海市 广西北路408号","中国 上海市 浙江中路473号","中国 上海市 天津路502号","中国 上海市 广西北路485号","中国 上海市 浙江中路486号","中国 上海市 广西北路473号"]
     var restaurantTypes = ["饭食","面食","面食","本帮菜","面食","面食","面食","饭食","面食","面食","本帮菜","面食","面食","面食"]
     var restaurantIsVisited = [Bool](count: 14, repeatedValue: false)
 
@@ -36,6 +36,12 @@ class RestaurantTableViewController: UITableViewController {
             )
         }
         }
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.hidesBarsOnSwipe = true
     }
 
     override func didReceiveMemoryWarning() {
@@ -105,7 +111,7 @@ class RestaurantTableViewController: UITableViewController {
         })
         
         optionMenu.addAction(isVisitedAction)
-        self.presentViewController(optionMenu, animated: true, completion: nil	)
+        //self.presentViewController(optionMenu, animated: true, completion: nil	)
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
     
@@ -198,9 +204,14 @@ class RestaurantTableViewController: UITableViewController {
             if let indexPath = self.tableView.indexPathForSelectedRow() {
                 let destinationController = segue.destinationViewController as DetailViewController
 //                destinationController.restaurantImage = self.restaurantImage[indexPath.row]
-                destinationController.restaurantImage = self.restaurants[indexPath.row].image
+                destinationController.restaurant = self.restaurants[indexPath.row]
             }
         }
+    }
+    
+    
+    @IBAction func unWindToHomeScreen(segue: UIStoryboardSegue){
+        
     }
 
 }
