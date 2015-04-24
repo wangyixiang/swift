@@ -10,7 +10,15 @@ import UIKit
 
 class AddTableViewController: UITableViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var nameTextField: UITextField!
+    @IBOutlet weak var typeTextField: UITextField!
+    @IBOutlet weak var locationTextField: UITextField!
+    @IBOutlet weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
 
+    var isVisited:Bool = true
+    var restaurant: Restaurant!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -47,6 +55,47 @@ class AddTableViewController: UITableViewController, UIImagePickerControllerDele
         imageView.clipsToBounds = true
         
         dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    @IBAction func save() {
+        var errorField = ""
+        
+        if self.nameTextField.text == "" {
+            errorField = "name"
+        } else if self.typeTextField.text == "" {
+            errorField = "type"
+        } else if self.locationTextField.text == "" {
+            errorField = "location"
+        }
+        
+        if errorField != "" {
+            let alertController = UIAlertController(title: "No Data", message: "Forget fill in the " + errorField, preferredStyle: .Alert)
+            let doAction = UIAlertAction(title: "OK", style: .Default, handler: nil)
+            alertController.addAction(doAction)
+            self.presentViewController(alertController, animated: true, completion: nil)
+            
+            return
+        }
+        
+        performSegueWithIdentifier("unWindToHomeScreen", sender: self)
+        
+        
+    }
+    
+    @IBAction func updateIsVisited(sender: AnyObject){
+        let button = sender as! UIButton
+
+        
+        if (button == yesButton) {
+            isVisited = true
+            yesButton.backgroundColor = UIColor(red: 235/255.0, green: 73/255.0, blue: 27/255.0, alpha: 1.0)
+            noButton.backgroundColor = UIColor.grayColor()
+        } else {
+            isVisited = false
+            yesButton.backgroundColor = UIColor.grayColor()
+            noButton.backgroundColor = UIColor(red: 235/255.0, green: 73/255.0, blue: 27/255.0, alpha: 1.0)
+        }
+        
     }
     
     func navigationController(navigationController: UINavigationController, willShowViewController viewController: UIViewController, animated: Bool) {
