@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class AddTableViewController: UITableViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     @IBOutlet weak var imageView: UIImageView!
@@ -50,7 +51,7 @@ class AddTableViewController: UITableViewController, UIImagePickerControllerDele
     }
     
     func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [NSObject : AnyObject]) {
-        imageView.image = info[UIImagePickerControllerOriginalImage] as? UIImage
+        imageView.image = info[UIImagePickerControllerOriginalImage] as! UIImage
         imageView.contentMode = UIViewContentMode.ScaleAspectFill
         imageView.clipsToBounds = true
         
@@ -75,6 +76,23 @@ class AddTableViewController: UITableViewController, UIImagePickerControllerDele
             self.presentViewController(alertController, animated: true, completion: nil)
             
             return
+        }
+        
+        if let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext {
+            restaurant = NSEntityDescription.insertNewObjectForEntityForName("Restaurant",
+                inManagedObjectContext: managedObjectContext) as! Restaurant
+            restaurant.name = nameTextField.text
+            restaurant.type = typeTextField.text
+            restaurant.location = locationTextField.text
+            restaurant.image = UIImagePNGRepresentation(imageView.image)
+            restaurant.isVisited = isVisited
+            
+            var e: NSError?
+            if managedObjectContext.save(&e) != true {
+                println("insert error: \(e!.localizedDescription)")
+                
+                return
+            }
         }
         
         performSegueWithIdentifier("unWindToHomeScreen", sender: self)
@@ -104,7 +122,7 @@ class AddTableViewController: UITableViewController, UIImagePickerControllerDele
     
     /*
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("reuseIdentifier", forIndexPath: indexPath) as UITableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier("reuseIdentifier", forIndexPath: indexPath) as! UITableViewCell
 
         // Configure the cell...
 

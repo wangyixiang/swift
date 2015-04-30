@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import CoreData
 
-class RestaurantTableViewController: UITableViewController {
+class RestaurantTableViewController: UITableViewController, NSFetchedResultsControllerDelegate {
     var restaurantNames = ["黄焖鸡米饭", "温州面馆", "观秦轩", "老街小食", "老薛面馆", "小杨生煎", "水饺","黄焖鸡米饭", "温州面馆", "观秦轩", "老街小食", "老薛面馆", "小杨生煎", "水饺"]
     var restaurantImage = ["barrafina.jpg","bourkestreetbakery.jpg","cafedeadend.jpg","cafeloisl.jpg","cafelore.jpg","confessional.jpg","donostia.jpg","barrafina.jpg","bourkestreetbakery.jpg","cafedeadend.jpg","cafeloisl.jpg","cafelore.jpg","confessional.jpg","donostia.jpg"]
     var restaurantLocations = ["中国上海市浙江中路462号","中国 上海市 广西北路408号","中国 上海市 浙江中路473号","中国 上海市 天津路502号","中国上海市广西北路485号","中国 上海市 浙江中路486号","中国 上海市 广西北路473号","中国 上海市 浙江中路462号","中国 上海市 广西北路408号","中国 上海市 浙江中路473号","中国 上海市 天津路502号","中国 上海市 广西北路485号","中国 上海市 浙江中路486号","中国 上海市 广西北路473号"]
@@ -16,6 +17,8 @@ class RestaurantTableViewController: UITableViewController {
     var restaurantIsVisited = [Bool](count: 14, repeatedValue: false)
 
     var restaurants:[Restaurant] = []
+    
+    var fetchResultController: NSFetchedResultsController!
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -25,18 +28,55 @@ class RestaurantTableViewController: UITableViewController {
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         if restaurants.count == 0 {
-        for (var i=0; i < self.restaurantNames.count; i++) {
-            self.restaurants.append(
-                Restaurant(
-                    name: restaurantNames[i],
-                    type: restaurantTypes[i],
-                    location: restaurantLocations[i],
-                    image: restaurantImage[i],
-                    isVisited: restaurantIsVisited[i])
-            )
-        }
+//        for (var i=0; i < self.restaurantNames.count; i++) {
+//            self.restaurants.append(
+//                Restaurant(
+//                    name: restaurantNames[i],
+//                    type: restaurantTypes[i],
+//                    location: restaurantLocations[i],
+//                    image: restaurantImage[i],
+//                    isVisited: restaurantIsVisited[i])
+//            )
+//        }
         }
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        
+        var fetchRequest = NSFetchRequest(entityName: "Restaurant")
+        var sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        if let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext {
+            fetchResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: managedObjectContext, sectionNameKeyPath: nil, cacheName: nil)
+            fetchResultController.delegate = self
+            var e:NSError?
+            var result = fetchResultController.performFetch(&e)
+            self.restaurants = fetchResultController.fetchedObjects as! [Restaurant]
+            
+            if result != true {
+                println(e?.localizedDescription)
+            }
+        }
+    }
+    
+    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+        tableView.beginUpdates()
+    }
+    
+    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+        switch type {
+        case NSFetchedResultsChangeType.Delete:
+            tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: UITableViewRowAnimation.Fade)
+        case NSFetchedResultsChangeType.Insert:
+            tableView.insertRowsAtIndexPaths([newIndexPath!], withRowAnimation: UITableViewRowAnimation.Fade)
+        case NSFetchedResultsChangeType.Update:
+            tableView.reloadRowsAtIndexPaths([indexPath!], withRowAnimation: UITableViewRowAnimation.Fade)
+        default:
+            tableView.reloadData()
+        }
+        restaurants = controller.fetchedObjects as! [Restaurant]
+    }
+    
+    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+        tableView.endUpdates()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -67,7 +107,7 @@ class RestaurantTableViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cellIdentifier = "Cell"
-        let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as CustomTableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath) as! CustomTableViewCell
 //        cell.nameLable.text = restaurantNames[indexPath.row]
 //        cell.locationLabel.text = restaurantLocations[indexPath.row]
 //        cell.typeLabel.text = restaurantTypes[indexPath.row]
@@ -75,12 +115,12 @@ class RestaurantTableViewController: UITableViewController {
         cell.nameLable.text = restaurants[indexPath.row].name
         cell.locationLabel.text = restaurants[indexPath.row].location
         cell.typeLabel.text = restaurants[indexPath.row].type
-        cell.thumbnailImageView.image = UIImage(named: restaurants[indexPath.row].image)
+        cell.thumbnailImageView.image = UIImage(data: restaurants[indexPath.row].image)
         cell.thumbnailImageView.layer.cornerRadius = cell.thumbnailImageView.frame.width / 2
         cell.thumbnailImageView.clipsToBounds = true
         
 //        cell.accessoryType = self.restaurantIsVisited[indexPath.row] ? .Checkmark:.None
-        cell.accessoryType = restaurants[indexPath.row].isVisited ? .Checkmark:.None
+        cell.accessoryType = restaurants[indexPath.row].isVisited.boolValue ? .Checkmark:.None
         
         return cell
     }
@@ -106,8 +146,8 @@ class RestaurantTableViewController: UITableViewController {
             let cell = tableView.cellForRowAtIndexPath(indexPath)
 //            self.restaurantIsVisited[indexPath.row] = !self.restaurantIsVisited[indexPath.row]
 //            cell?.accessoryType = self.restaurantIsVisited[indexPath.row] ? .Checkmark : .None
-            self.restaurants[indexPath.row].isVisited = !self.restaurants[indexPath.row].isVisited
-            cell?.accessoryType = self.restaurants[indexPath.row].isVisited ? .Checkmark : .None
+            self.restaurants[indexPath.row].isVisited = !self.restaurants[indexPath.row].isVisited.boolValue
+            cell?.accessoryType = self.restaurants[indexPath.row].isVisited.boolValue ? .Checkmark : .None
         })
         
         optionMenu.addAction(isVisitedAction)
@@ -135,6 +175,7 @@ class RestaurantTableViewController: UITableViewController {
             var row = indexPath.row
             self.restaurants.removeAtIndex(row)
             tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+            
         } else if editingStyle == .Insert {
             // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
         }    
@@ -167,10 +208,15 @@ class RestaurantTableViewController: UITableViewController {
 //            self.restaurantIsVisited.removeAtIndex(indexPath.row)
 //            self.restaurantImage.removeAtIndex(indexPath.row)
             var row = indexPath.row
-            self.restaurants.removeAtIndex(row)
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-        }
-        )
+            if let managedObjectContext = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext {
+                let restaurantToDelete = self.fetchResultController.objectAtIndexPath(indexPath) as! Restaurant
+                managedObjectContext.deleteObject(restaurantToDelete)
+                var e: NSError?
+                if managedObjectContext.save(&e) != true {
+                    println("delete error: \(e!.localizedDescription)")
+                }
+            }
+        })
         
         shareAction.backgroundColor = UIColor(red: 255/255.0, green: 166/255.0, blue: 51/255.0, alpha: 1.0)
         deleteAction.backgroundColor = UIColor(red: 51/255.0, green: 51/255.0, blue: 51/255.0, alpha: 1.0)
@@ -202,7 +248,7 @@ class RestaurantTableViewController: UITableViewController {
         // Pass the selected object to the new view controller.
         if segue.identifier == "showRestaurantDetail" {
             if let indexPath = self.tableView.indexPathForSelectedRow() {
-                let destinationController = segue.destinationViewController as DetailViewController
+                let destinationController = segue.destinationViewController as! DetailViewController
 //                destinationController.restaurantImage = self.restaurantImage[indexPath.row]
                 destinationController.restaurant = self.restaurants[indexPath.row]
             }

@@ -18,7 +18,7 @@ class DetailViewController: UIViewController , UITableViewDataSource, UITableVie
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        self.restaurantImageView.image = UIImage(named: self.restaurant.image)
+        self.restaurantImageView.image = UIImage(data: self.restaurant.image)
         self.tableView.backgroundColor = UIColor(red: 240/255.0, green: 240/255.0, blue: 240/255.0, alpha: 0.2)
         self.tableView.tableFooterView = UIView(frame: CGRectZero)
         self.tableView.separatorColor = UIColor(red: 240/255.0, green: 240/255.0, blue: 240/255.0, alpha: 0.2)
@@ -48,7 +48,7 @@ class DetailViewController: UIViewController , UITableViewDataSource, UITableVie
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as DetailTableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as! DetailTableViewCell
         
         switch indexPath.row {
         case 0:
@@ -64,7 +64,7 @@ class DetailViewController: UIViewController , UITableViewDataSource, UITableVie
             cell.valueLabel.text = restaurant.location
         case 3:
             cell.fieldLabel.text = "Been There"
-            cell.valueLabel.text = (restaurant.isVisited) ? "Yes!" : "No"
+            cell.valueLabel.text = (restaurant.isVisited.boolValue) ? "Yes!" : "No"
             cell.mapButton.hidden = true
         default:
             cell.fieldLabel.text = ""
@@ -86,7 +86,7 @@ class DetailViewController: UIViewController , UITableViewDataSource, UITableVie
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
         if segue.identifier == "showMap" {
-            let destinationController = segue.destinationViewController as MapViewController
+            let destinationController = segue.destinationViewController as! MapViewController
             destinationController.restaurant = restaurant
         }
     }
